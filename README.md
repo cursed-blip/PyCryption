@@ -1,5 +1,26 @@
-# PyCryption
-Need encryption in py? got pycryption
+# Pycryption 🔒
 
 [![Pycryption](https://img.shields.io/badge/Pycryption-Lightweight%20Encryption-brightgreen?style=flat-square)](#)
-[![Join our Discord](https://img.shields.io/badge/Discord-Join%20the%20Community-7289DA?style=flat-square)](https://discord.gg/jmHNWTrJ)
+[![Discord](https://img.shields.io/badge/Discord-Join%20the%20Community-7289DA?style=flat-square)](https://discord.gg/jmHNWTrJ)
+
+## Features ✨
+
+- **Lightweight & Fast**: ~98% lighter than AES, minimal CPU usage  
+- **File Encryption**: Encrypt any file with `--encrypt --file <filename>`  
+- **File Decryption**: Decrypt `.enc` files to `.dec` with `--decrypt --file <filename>`  
+- **Interactive Text Mode**: Encrypt/decrypt text directly in the console  
+- **Custom Tokens**: Easily extendable token list for encryption  
+- **Nonce & Seed Support**: Random or fixed seed for deterministic encryption  
+- **Secure Enough for Simple Use**: Great for lightweight projects or local data  
+
+## Usage 🛠️
+
+```bash
+# Encrypt a file
+python pycryption.py --encrypt --file example.txt
+
+# Decrypt a file
+python pycryption.py --decrypt --file example.txt.enc
+
+# Interactive text encryption
+python pycryption.py
