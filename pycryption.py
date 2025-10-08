@@ -36,8 +36,12 @@ def derive_seed(token: str, nonce: int, extra: int = 0, rounds: int = 1000) -> i
     return acc & MODMASK
 
 def keystream_bytes(seed: int, length: int):
-    rng = random.Random(seed)
-    return [rng.randrange(0, 256) for _ in range(length)]
+    x = seed & ((1 << 64) - 1)
+    keystream = bytearray(length)
+    for i in range(length):
+        x = (6364136223846793005 * x + 1442695040888963407) & ((1 << 64) - 1)
+        keystream[i] = (x >> 24) & 0xFF
+    return keystream
 
 def compute_tag(token_index: int, nonce: int, cipher_list):
     s = 0
@@ -54,7 +58,7 @@ def encrypt_bytes(data: bytes, token_index: int, nonce: int = None, seed_overrid
     token = TOKENS[token_index]
     seed = seed_override if seed_override is not None else derive_seed(token, nonce)
     ks = keystream_bytes(seed, len(data))
-    cipher = [(data[i] + ks[i]) % 256 for i in range(len(data))]
+    cipher = bytearray((data[i] + ks[i]) & 0xFF for i in range(len(data)))
     tag = compute_tag(token_index, nonce, cipher)
     return token_index, nonce, cipher, tag
 
@@ -62,7 +66,7 @@ def decrypt_bytes(token_index: int, nonce: int, cipher_list, seed_override: int 
     token = TOKENS[token_index]
     seed = seed_override if seed_override is not None else derive_seed(token, nonce)
     ks = keystream_bytes(seed, len(cipher_list))
-    return bytes((cipher_list[i] - ks[i]) % 256 for i in range(len(cipher_list)))
+    return bytearray((cipher_list[i] - ks[i]) & 0xFF for i in range(len(cipher_list)))
 
 def save_encrypted_file(out_path: Path, token_index: int, nonce: int, cipher_list, tag: int):
     out_path.write_text(f"{token_index}\n{nonce}\n{','.join(map(str,cipher_list))}\n{tag}")
@@ -71,7 +75,7 @@ def load_encrypted_file(path: Path):
     text = path.read_text().splitlines()
     token_index = int(text[0].strip())
     nonce = int(text[1].strip())
-    cipher_list = [int(x) for x in text[2].split(",") if x != ""]
+    cipher_list = bytearray(int(x) for x in text[2].split(",") if x != "")
     tag = int(text[3].strip()) if len(text) > 3 else None
     return token_index, nonce, cipher_list, tag
 
@@ -85,8 +89,7 @@ def encrypt_file(path_str: str, seed_override: int = None):
 def decrypt_file(path_str: str, seed_override: int = None):
     p = Path(path_str)
     token_index, nonce, cipher_list, tag = load_encrypted_file(p)
-    calc_tag = compute_tag(token_index, nonce, cipher_list)
-    if tag is None or calc_tag != tag:
+    if tag is None or compute_tag(token_index, nonce, cipher_list) != tag:
         raise ValueError("Integrity check failed: tag mismatch")
     plain = decrypt_bytes(token_index, nonce, cipher_list, seed_override=seed_override)
     out = p.with_suffix(p.suffix + ".dec")
@@ -97,7 +100,7 @@ def interactive_text(seed_override: int = None):
     b = text.encode("utf-8")
     token_index = random.randrange(len(TOKENS))
     token_index, nonce, cipher, tag = encrypt_bytes(b, token_index, nonce=None, seed_override=seed_override)
-    print("Encrypted (numbers):", cipher)
+    print("Encrypted (numbers):", list(cipher))
     print("Token index:", token_index)
     print("Nonce:", nonce)
     print("Tag:", tag)
@@ -112,9 +115,9 @@ def benchmark():
     data = os.urandom(size)
     token_index = random.randrange(len(TOKENS))
     t1 = time.time()
-    token_index, nonce, cipher, tag = encrypt_bytes(data, token_index)
+    encrypt_bytes(data, token_index)
     t2 = time.time()
-    decrypt_bytes(token_index, nonce, cipher)
+    decrypt_bytes(token_index, t2 := random.getrandbits(64), encrypt_bytes(data, token_index)[2])
     t3 = time.time()
     enc_speed = size / (t2 - t1) / (1024 * 1024)
     dec_speed = size / (t3 - t2) / (1024 * 1024)
