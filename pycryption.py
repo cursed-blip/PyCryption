@@ -1,4 +1,4 @@
-import random, sys, os
+import random, sys, os, time
 from pathlib import Path
 
 #---------------------------------------------------------------------------------------------------------
@@ -107,10 +107,26 @@ def interactive_text(seed_override: int = None):
     except:
         print("Decrypted (bytes):", recovered)
 
+def benchmark():
+    size = 1024 * 1024
+    data = os.urandom(size)
+    token_index = random.randrange(len(TOKENS))
+    t1 = time.time()
+    token_index, nonce, cipher, tag = encrypt_bytes(data, token_index)
+    t2 = time.time()
+    decrypt_bytes(token_index, nonce, cipher)
+    t3 = time.time()
+    enc_speed = size / (t2 - t1) / (1024 * 1024)
+    dec_speed = size / (t3 - t2) / (1024 * 1024)
+    print("Benchmarking Pycryption...")
+    print(f"Encryption speed: {enc_speed:.1f} MB/s")
+    print(f"Decryption speed: {dec_speed:.1f} MB/s")
+
 if __name__ == "__main__":
     args = sys.argv[1:]
     mode_encrypt = "--encrypt" in args
     mode_decrypt = "--decrypt" in args
+    mode_bench = "--benchmark" in args
     file_arg = None
     seed_override = None
     if "--file" in args:
@@ -119,8 +135,9 @@ if __name__ == "__main__":
     if "-seed" in args:
         idx = args.index("-seed")
         seed_override = int(args[idx+1])
-
-    if mode_encrypt and file_arg:
+    if mode_bench:
+        benchmark()
+    elif mode_encrypt and file_arg:
         p = Path(file_arg)
         data = p.read_bytes()
         token_index = random.randrange(len(TOKENS))
