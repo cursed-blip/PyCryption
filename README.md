@@ -1,6 +1,7 @@
 # Pycryption 🔒
 
 [![Pycryption](https://img.shields.io/badge/Pycryption-Lightweight%20Encryption-brightgreen?style=flat-square)](#)
+[![Latest Stable Version](https://img.shields.io/badge/version-1.0.0-blue?style=flat-square)](#)
 [![Discord](https://img.shields.io/badge/Discord-Join%20the%20Community-7289DA?style=flat-square)](https://discord.gg/jmHNWTrJ)
 
 ## Features ✨
