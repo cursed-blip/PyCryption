@@ -138,12 +138,8 @@ if __name__ == "__main__":
     if mode_bench:
         benchmark()
     elif mode_encrypt and file_arg:
-        p = Path(file_arg)
-        data = p.read_bytes()
-        token_index = random.randrange(len(TOKENS))
-        token_index, nonce, cipher, tag = encrypt_bytes(data, token_index, nonce=None, seed_override=seed_override)
-        save_encrypted_file(p.with_suffix(p.suffix + ".enc"), token_index, nonce, cipher, tag)
-        print(f"Encrypted {file_arg} -> {p.with_suffix(p.suffix + '.enc')}")
+        encrypt_file(file_arg, seed_override=seed_override)
+        print(f"Encrypted {file_arg} -> {Path(file_arg).with_suffix(Path(file_arg).suffix + '.enc')}")
     elif mode_decrypt and file_arg:
         decrypt_file(file_arg, seed_override=seed_override)
     else:
