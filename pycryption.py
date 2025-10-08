@@ -111,19 +111,22 @@ def interactive_text(seed_override: int = None):
         print("Decrypted (bytes):", recovered)
 
 def benchmark():
-    size = 1024 * 1024
+    size = 10 * 1024 * 1024  # 10 MB
     data = os.urandom(size)
     token_index = random.randrange(len(TOKENS))
+
     t1 = time.time()
-    encrypt_bytes(data, token_index)
+    token_index, nonce, cipher, tag = encrypt_bytes(data, token_index)
     t2 = time.time()
-    decrypt_bytes(token_index, t2 := random.getrandbits(64), encrypt_bytes(data, token_index)[2])
+    decrypt_bytes(token_index, nonce, cipher)
     t3 = time.time()
+
     enc_speed = size / (t2 - t1) / (1024 * 1024)
     dec_speed = size / (t3 - t2) / (1024 * 1024)
     print("Benchmarking Pycryption...")
     print(f"Encryption speed: {enc_speed:.1f} MB/s")
     print(f"Decryption speed: {dec_speed:.1f} MB/s")
+
 
 if __name__ == "__main__":
     args = sys.argv[1:]
